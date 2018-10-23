@@ -3,12 +3,13 @@ title: "QLSC_Assignment_3.1"
 author: "Niklas Brake"
 date: "October 22, 2018"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 
 ```{r}
-library(DESeq2)
+suppressMessages(library(DESeq2))
+
 
 count_matrix = read.table("C:\\Users\\brake\\Documents\\QLSC600\\Module 3\\QLS_counts.tsv");
 sample_annotation = read.table("C:\\Users\\brake\\Documents\\QLSC600\\Module 3\\QLS_annotations.tsv");
@@ -17,28 +18,26 @@ dds = DESeqDataSetFromMatrix(countData = count_matrix, colData = sample_annotati
 ddsT <-rlog(dds)
 PCs = plotPCA(ddsT, intgroup = "group", ntop = 1000, returnData = TRUE)
 PCs
+```
 
+One observes that PC1 segregates the data into group A and group B, with the exception of one A sample, who's PC1 is positive. This is sample A2. If we assume there are two clusters of data corresponding to our two groups, we could use Gaussian mixture models and the posterior probabilies of each sample to determine how well it "groups" with the others.
+
+
+```{r}
 dds = DESeq(dds)
 DE_Results = results(dds)
 DE_Results[DE_Results$padj < 0.01 & !is.na(DE_Results$padj),]
-```
 
-One observes that PC1 segregates the data into group A and group B, with the exception of one A sample, who's PC1 is positive. This is sample A2.
-
-```{r}
 count_matrix2 = count_matrix[,c(1:2,4:8)]
 sample_annotation2 = sample_annotation[c(1:2,4:8),]
 dds2 = DESeqDataSetFromMatrix(countData = count_matrix2, colData = sample_annotation2, design = ~ group)
-dds2T <-rlog(dds2)
-PCs2 = plotPCA(dds2T, intgroup = "group", ntop = 1000, returnData = TRUE)
-PCs2
 
 dds2 = DESeq(dds2)
 DE_Results2 = results(dds2)
 DE_Results2[DE_Results2$padj < 0.01 & !is.na(DE_Results2$padj),]
 ```
 
-We now get almsot a four-fold increase in the number of "significant" genes. This makes sense considering we removed the case where a "B-like" sample was labelled A; the two groups are now linearly seperable in the projection onto the first two principle components, whereas before they were not. 
+We now get almost a four-fold increase in the number of "significant" genes. This makes sense considering we removed the case where a "B-like" sample was labelled A; the two groups are now linearly seperable in the projection onto the first two principle components, whereas before they were not. 
 
 ```{r}
 ddsshort = dds[order(DE_Results$padj)[c(1:100)],]
